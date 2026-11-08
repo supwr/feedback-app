@@ -1,4 +1,5 @@
-name: Deploy to Amazon ECR
+
+name: Deploy Quarkus Native to ECR
 
 on:
   push:
@@ -10,30 +11,24 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: us-east-2
+  AWS_REGION: us-east-1
   ECR_REPOSITORY: feedback-app
 
 jobs:
   deploy:
-    name: Build and Push Docker Image
+    name: Build Native and Push to ECR
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug OIDC
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-        run: |
-          TOKEN=$(curl -s \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
-            | jq -r '.value')
-          
-          echo "$TOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null \
-            | jq '{sub, aud, repository, repository_id, repository_owner_id, ref}'
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -41,16 +36,21 @@ jobs:
           role-to-assume: arn:aws:iam::669668106080:role/github-actions-ecr-deploy
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Build Quarkus Native
+        run: |
+          ./mvnw package \
+            -Dnative \
+            -Dquarkus.native.container-build=true \
+            -DskipTests
+
       - name: Build Docker image
         run: |
           docker build \
+            -f src/main/docker/Dockerfile.native \
             -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
             -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest .
 

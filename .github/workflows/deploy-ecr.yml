@@ -47,6 +47,11 @@ jobs:
             -Dquarkus.native.container-build=true \
             -DskipTests
 
+      - name: Verify native executable
+        run: |
+          ls -lah target/
+          find target -maxdepth 1 -type f -name "*-runner"
+
       - name: Build Docker image
         run: |
           docker build \

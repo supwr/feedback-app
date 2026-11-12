@@ -44,10 +44,10 @@ jobs:
 
       - name: Build Quarkus Native
         run: |
-          ./mvnw package \
-            -Dnative \
-            -Dquarkus.native.container-build=true \
-            -DskipTests
+          ./mvnw clean package \
+            -DskipTests \
+            -Dquarkus.native.enabled=true \
+            -Dquarkus.native.container-build=true
 
       - name: Verify native executable
         run: |

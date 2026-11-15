@@ -46,9 +46,10 @@ jobs:
       - name: Build Quarkus Native
         run: |
           ./mvnw clean package \
+            -Plambda \
             -DskipTests \
+            -Dnative \
             -Dquarkus.profile=prod \
-            -Dquarkus.native.enabled=true \
             -Dquarkus.native.container-build=true
 
       - name: Verify native executable

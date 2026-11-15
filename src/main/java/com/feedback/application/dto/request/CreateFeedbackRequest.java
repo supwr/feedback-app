@@ -1,6 +1,7 @@
 package com.feedback.application.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@RegisterForReflection
 public class CreateFeedbackRequest {
     @JsonProperty("description")
     private String description;

@@ -47,6 +47,7 @@ jobs:
         run: |
           ./mvnw clean package \
             -DskipTests \
+            -Dquarkus.profile=prod \
             -Dquarkus.native.enabled=true \
             -Dquarkus.native.container-build=true
 

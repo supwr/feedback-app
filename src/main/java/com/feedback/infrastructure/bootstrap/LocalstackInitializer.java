@@ -1,5 +1,6 @@
 package com.feedback.infrastructure.bootstrap;
 
+import io.quarkus.arc.profile.IfBuildProfile;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -21,6 +22,7 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 
 @Startup
 @ApplicationScoped
+@IfBuildProfile("local")
 public class LocalstackInitializer {
 
     @Inject

@@ -35,8 +35,8 @@ jobs:
           role-to-assume: arn:aws:iam::432073638094:role/GitHubActionsECRPushPolicy
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
+#      - name: Verify AWS identity
+#        run: aws sts get-caller-identity
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -49,56 +49,71 @@ jobs:
             -Dquarkus.native.enabled=true \
             -Dquarkus.native.container-build=true
 
-      - name: Verify native executable
-        run: |
-          echo "Target directory:"
-          ls -lah target/
-          
-          echo "Native executable:"
-          find target -maxdepth 1 -type f -name "*-runner" -ls
-          
-          if ! find target -maxdepth 1 -type f -name "*-runner" | grep -q .; then
-            echo "ERROR: Native executable not found!"
-            exit 1
+#      - name: Verify native executable
+#        run: |
+#          echo "Target directory:"
+#          ls -lah target/
+#
+#          echo "Native executable:"
+#          find target -maxdepth 1 -type f -name "*-runner" -ls
+#
+#          if ! find target -maxdepth 1 -type f -name "*-runner" | grep -q .; then
+#            echo "ERROR: Native executable not found!"
+#            exit 1
           fi
 
-      - name: Debug Docker context
-        run: |
-          echo "Working directory:"
-          pwd
-          
-          echo "Dockerfile:"
-          ls -lah src/main/docker/Dockerfile.native
-          
-          echo "Target:"
-          ls -lah target/
-          
-          echo "Docker ignore:"
-          cat .dockerignore || true
-          
-          echo "Native executable:"
-          find target -maxdepth 1 -type f -name "*-runner" -ls
+#      - name: Debug Docker context
+#        run: |
+#          echo "Working directory:"
+#          pwd
+#
+#          echo "Dockerfile:"
+#          ls -lah src/main/docker/Dockerfile.native
+#
+#          echo "Target:"
+#          ls -lah target/
+#
+#          echo "Docker ignore:"
+#          cat .dockerignore || true
+#
+#          echo "Native executable:"
+#          find target -maxdepth 1 -type f -name "*-runner" -ls
 
-      - name: Build Docker image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image
         run: |
-          docker build \
-            --no-cache \
-            -f src/main/docker/Dockerfile.native \
-            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
-            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
+               docker buildx build \
+               --platform linux/amd64 \
+               --provenance=false \
+               --sbom=false \
+               -f src/main/docker/Dockerfile.native \
+               -t 432073638094.dkr.ecr.us-east-2.amazonaws.com/feedback-app:${{ github.sha }} \
+               -t 432073638094.dkr.ecr.us-east-2.amazonaws.com/feedback-app:latest \
+               --push \
+               .
+
+#      - name: Build Docker image
+#        run: |
+#          docker build \
+#            --no-cache \
+#            -f src/main/docker/Dockerfile.native \
+#            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+#            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
             .
 
-      - name: Verify AWS identity
-        run: |
-          aws sts get-caller-identity
+#      - name: Verify AWS identity
+#        run: |
+#          aws sts get-caller-identity
+#
+#      - name: Check ECR repository
+#        run: |
+#          aws ecr describe-repositories \
+#            --repository-names feedback-app \
+#            --region us-east-2
 
-      - name: Check ECR repository
-        run: |
-          aws ecr describe-repositories \
-            --repository-names feedback-app \
-            --region us-east-2
-
-      - name: Push Docker image
-        run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+#      - name: Push Docker image
+#        run: |
+#          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+#          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest

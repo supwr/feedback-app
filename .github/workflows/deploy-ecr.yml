@@ -45,12 +45,16 @@ jobs:
 
       - name: Build Quarkus Native
         run: |
-          ./mvnw clean package \
+          set -euxo pipefail
+
+          ./mvnw clean install \
             -Plambda \
             -DskipTests \
             -Dnative \
             -Dquarkus.profile=prod \
             -Dquarkus.native.container-build=true
+
+          ls -lah target/
 
       - name: Verify native executable
         run: |

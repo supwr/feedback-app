@@ -45,16 +45,21 @@ jobs:
 
       - name: Build Quarkus Native
         run: |
-          set -euxo pipefail
-
-          ./mvnw clean install \
+          ./mvnw clean package \
             -Plambda \
             -DskipTests \
             -Dnative \
             -Dquarkus.profile=prod \
             -Dquarkus.native.container-build=true
 
-          ls -lah target/
+      - name: Inspect Lambda package
+        run: |
+          echo "Function ZIP contents:"
+          unzip -l target/function.zip
+      
+          echo "File types:"
+          unzip -o target/function.zip -d /tmp/lambda-package
+          file /tmp/lambda-package/*
 
       - name: Verify native executable
         run: |

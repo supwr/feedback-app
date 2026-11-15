@@ -7,6 +7,7 @@ import com.feedback.infrastructure.persistence.mapper.FeedbackPersistenceMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -20,11 +21,14 @@ public class DynamoDbFeedbackRepository implements FeedbackRepository {
     private final DynamoDbClient dynamoDbClient;
     private final FeedbackPersistenceMapper feedbackPersistenceMapper;
 
+    @ConfigProperty(name = "feedback.table.name")
+    String feedbackTableName;
+
     @Override
     public Feedback save(Feedback feedback) {
         FeedbackEntity entity = feedbackPersistenceMapper.toEntity(feedback);
         dynamoDbClient.putItem(PutItemRequest.builder()
-                .tableName("feedbacks")
+                .tableName(feedbackTableName)
                 .item(Map.of(
                         "id", AttributeValue.fromS(entity.getId()),
                         "description", AttributeValue.fromS(entity.getDescription()),

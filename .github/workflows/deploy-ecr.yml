@@ -40,6 +40,7 @@ jobs:
         run: aws sts get-caller-identity
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Quarkus Native
@@ -54,6 +55,7 @@ jobs:
           echo "Target contents:"
           ls -lah target/
 
+          echo "Searching for native executable:"
           find target -maxdepth 1 -type f -name "*-runner" -ls
 
           if ! find target -maxdepth 1 -type f -name "*-runner" | grep -q .; then

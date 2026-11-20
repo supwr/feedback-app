@@ -11,4 +11,5 @@ import java.time.LocalDate;
 @RegisterForReflection
 public class ReportCreatedEvent {
     private LocalDate date;
+    private String periodWeek;
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.IsoFields;
 import java.util.UUID;
 
 @Getter
@@ -31,15 +32,26 @@ public class Feedback {
         }
     }
 
+    public String calculatePeriodWeek() {
+        if (sentAt == null) {
+            throw new IllegalArgumentException("Sent date is required");
+        }
+        int year = sentAt.get(IsoFields.WEEK_BASED_YEAR);
+        int week = sentAt.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
+        return year + "-W" + String.format("%02d", week);
+    }
+
     public static Feedback create(String description, Integer rating) {
+        LocalDate sentAt = LocalDate.now();
+        Feedback unsaved = Feedback.builder().sentAt(sentAt).build();
         return Feedback.builder()
                 .id(UUID.randomUUID().toString())
                 .description(description)
                 .rating(rating)
                 .urgency(resolveUrgency(rating))
                 .createdAt(Instant.now())
-                .periodWeek("W-" + Instant.now().toString())
-                .sentAt(LocalDate.now())
+                .periodWeek(unsaved.calculatePeriodWeek())
+                .sentAt(sentAt)
                 .build();
     }
 

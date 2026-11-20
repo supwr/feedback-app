@@ -3,6 +3,8 @@ package com.feedback.application.usecase.report.create;
 import com.feedback.application.dto.event.ReportCreatedEvent;
 import com.feedback.application.dto.request.CreateReportRequest;
 import com.feedback.application.dto.response.ReportResponse;
+import com.feedback.domain.exception.ValidationException;
+import com.feedback.domain.model.Feedback;
 import com.feedback.domain.port.ReportPublisher;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,8 +20,12 @@ public class CreateReportUseCase {
     String reportQueueName;
 
     public ReportResponse execute(CreateReportRequest request) {
+        validate(request);
+
+        Feedback period = Feedback.builder().sentAt(request.getDate()).build();
         ReportCreatedEvent event = ReportCreatedEvent.builder()
-                .date(java.time.LocalDate.now())
+                .date(request.getDate())
+                .periodWeek(period.calculatePeriodWeek())
                 .build();
 
         reportPublisher.publish(reportQueueName, event);
@@ -28,5 +34,11 @@ public class CreateReportUseCase {
                 .message("Report request accepted")
                 .queueName(reportQueueName)
                 .build();
+    }
+
+    private void validate(CreateReportRequest request) {
+        if (request == null || request.getDate() == null) {
+            throw new ValidationException("date", "Date is required");
+        }
     }
 }

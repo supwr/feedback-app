@@ -22,13 +22,13 @@ O projeto combina API sincrona com processamento assincrono:
 - LocalStack (desenvolvimento local)
 - Docker
 
-## Arquitetura
+## Arquitetura da solução
 
-### Camadas principais
+![img_11.png](img_1.png)
 
-- `application`: casos de uso, DTOs e mapeamentos de entrada/saida.
-- `domain`: modelo de negocio (`Feedback`) e regras de validacao/calculo.
-- `infrastructure`: controllers REST, repositorio DynamoDB e publicador SQS.
+## Arquitetura limpa
+
+![img.png](img.png)
 
 ### Fluxo de feedback
 
